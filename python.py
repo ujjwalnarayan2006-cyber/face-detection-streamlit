@@ -293,3 +293,56 @@ if uploaded_file is not None:
         )
     else:
         st.warning("No face detected.")
+
+       # -------------------------------------------------------- 
+# STEP 8: NEW FEATURE - Face Recognition in a Group
+# -------------------------------------------------------- 
+st.divider() # Adds a visual line to separate the new feature
+st.header("Step 8:(Find Person in a Group)")
+
+st.write("Upload a target face and a roup photo to see if the model can find them.")
+
+col_a, col_b = st.columns(2)
+with col_a:
+    ref_file = st.file_uploader("1. Target Person (Passport Photo)", type=["jpg", "jpeg", "png"], key="ref")
+with col_b:
+    group_file = st.file_uploader("2. Group Photo", type=["jpg", "jpeg", "png"], key="group")
+
+if ref_file is not None and group_file is not None:
+    
+    # Load images
+    ref_image = face_recognition.load_image_file(ref_file)
+    group_image = face_recognition.load_image_file(group_file)
+    
+    st.image(ref_image, caption="Target Person", width=250)
+    
+    with st.spinner("Scanning group photo..."):
+        try:
+            ref_encoding = face_recognition.face_encodings(ref_image)[0]
+        except IndexError:
+            st.error("Could not find a clear face in the target image.")
+            st.stop()
+            
+        group_locations = face_recognition.face_locations(group_image)
+        group_encodings = face_recognition.face_encodings(group_image, group_locations)
+        
+        annotated_group = group_image.copy()
+        match_found = False
+        
+        for (top, right, bottom, left), face_encoding in zip(group_locations, group_encodings):
+            matches = face_recognition.compare_faces([ref_encoding], face_encoding, tolerance=0.6)
+            
+            if True in matches:
+                match_found = True
+                cv2.rectangle(annotated_group, (left, top), (right, bottom), (0, 255, 0), 4)
+                cv2.putText(annotated_group, "Target Found", (left, top - 10), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            else:
+                cv2.rectangle(annotated_group, (left, top), (right, bottom), (255, 0, 0), 2)
+                
+        st.image(annotated_group, caption="Recognition Result")
+        
+        if match_found:
+            st.success("Target person found in the group photo!")
+        else:
+            st.error("Target person was NOT found in the group.")
