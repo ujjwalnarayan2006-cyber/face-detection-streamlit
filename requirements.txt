@@ -3,3 +3,4 @@ opencv-python-headless==4.11.0.86
 numpy
 face_recognition
 cmake
+build-essential
