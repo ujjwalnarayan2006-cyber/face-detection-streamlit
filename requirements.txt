@@ -1,6 +1,6 @@
 streamlit
-opencv-python-headless==4.11.0.86
+opencv-python-headless
 numpy
-face_recognition
 cmake
-build-essential
+face_recognition
+setuptools<70
